@@ -17,12 +17,13 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [
       {
-        source: '/graphql',
-        destination: 'https://omekotitel.bg/graphql',
+        source: "/graphql",
+        destination: "https://omekotitel.bg/graphql",
       },
     ];
   },
-  webpack(config, { webpack }) {
+  turbopack: {},
+  webpack(config) {
     config.module.rules.push({
       test: /\.(graphql|gql)$/,
       exclude: /node_modules/,
