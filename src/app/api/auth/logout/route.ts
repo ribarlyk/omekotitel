@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { readFileSync } from "fs";
-import { join } from "path";
+import { Mutations } from "@/src/app/utils/graphql";
 
 export async function POST() {
   try {
@@ -11,15 +10,7 @@ export async function POST() {
 
     if (token && GRAPHQL_ENDPOINT) {
       try {
-        const revokeQueryPath = join(
-          process.cwd(),
-          "src",
-          "app",
-          "qraphql",
-          "mutation",
-          "revoke-customer-token.graphql"
-        );
-        const revokeQuery = readFileSync(revokeQueryPath, "utf8");
+        const query = Mutations.REVOKE_CUSTOMER_TOKEN;
 
         const response = await fetch(GRAPHQL_ENDPOINT, {
           method: "POST",
@@ -27,13 +18,25 @@ export async function POST() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ query: revokeQuery }),
+          body: JSON.stringify({ query }),
         });
 
-        if (response.status === 200) cookieStore.delete("auth-token");
+        if (!response.ok) {
+          console.warn(
+            "Revoke mutation returned non-ok status",
+            response.status
+          );
+        }
       } catch (e) {
         console.warn("Failed to call revoke-customer-token:", e);
       }
+    }
+
+    try {
+      cookieStore.delete("auth-token");
+    } catch (e) {
+      console.warn("Failed to call revoke-customer-token:", e);
+      cookieStore.set("auth-token", "", { path: "/", maxAge: 0 });
     }
 
     return NextResponse.json({ success: true });
