@@ -1,47 +1,59 @@
 "use client";
-import { useState } from "react";
-import { useMutation } from "@apollo/client/react";
-import { Mutations } from "@/src/app/utils/graphql/mutations";
-
-export interface UseAuthenticateProps {}
+import { FormEvent, useState } from "react";
 
 export interface UseAuthenticateReturns {
   loginLoading: boolean;
-  handleLogin: (event: any, methods: any) => any;
+  handleLogin: (event: FormEvent<HTMLFormElement>) => Promise<void>;
+  handleLogout: () => Promise<void>;
 }
 
 export const useAuthenticate = (): UseAuthenticateReturns => {
-  const [loginLoading, setLoginLoading] = useState(false);
-  const [generateToken] = useMutation(Mutations.GENERATE_AUTH_TOKEN);
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (event: any, methods: any) => {
+  const handleLogout = async () => {
+    try {
+      setLoading(true);
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
     try {
       event.preventDefault();
-      setLoginLoading(true);
+      setLoading(true);
+
       const formData = new FormData(event.currentTarget);
       const email = String(formData.get("email") ?? "").trim();
       const password = String(formData.get("password") ?? "").trim();
 
-      console.log("email", email, password);
-
-      const { data } = await generateToken({
-        variables: {
-          email,
-          password,
+      await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
+        credentials: "include",
+        body: JSON.stringify({ email, password }),
       });
-
-      console.log("response", data);
     } catch (error) {
       console.error("Login error:", error);
     } finally {
-      setLoginLoading(false);
+      setLoading(false);
     }
   };
 
   return {
-    loginLoading,
+    loginLoading: loading,
     handleLogin,
+    handleLogout,
   };
 };
-
