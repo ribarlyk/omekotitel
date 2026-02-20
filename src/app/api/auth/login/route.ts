@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { readFileSync } from "fs";
-import { join } from "path";
+import { Mutations } from "@/src/app/utils/graphql";
+import { print } from "graphql";
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     }
 
     const GRAPHQL_ENDPOINT = process.env.GRAPHQL_URL ?? "";
-    
+
     if (!GRAPHQL_ENDPOINT) {
       console.error("GRAPHQL_URL is not configured");
       return NextResponse.json(
@@ -23,22 +23,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const genQueryPath = join(
-      process.cwd(),
-      "src",
-      "app",
-      "qraphql",
-      "mutation",
-      "generate-customer-token.graphql"
-    );
-    const genQuery = readFileSync(genQueryPath, "utf8");
+    const genQuery = print(Mutations.GENERATE_AUTH_TOKEN);
 
     const genResp = await fetch(GRAPHQL_ENDPOINT, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ query: genQuery, variables: { email, password } }),
     });
-
+    console.log(genResp)
     if (!genResp.ok) {
       console.error(
         "GraphQL HTTP error during token generation",
@@ -74,15 +66,7 @@ export async function POST(request: NextRequest) {
     // Create an empty cart for the signed-in customer (server-side)
     let cartId: string | null = null;
     try {
-      const cartQueryPath = join(
-        process.cwd(),
-        "src",
-        "app",
-        "qraphql",
-        "mutation",
-        "create-cart-after-signin.graphql"
-      );
-      const cartQuery = readFileSync(cartQueryPath, "utf8");
+      const cartQuery = print(Mutations.CREATE_CART_AFTER_SIGNIN);
 
       const cartResp = await fetch(GRAPHQL_ENDPOINT, {
         method: "POST",
