@@ -1,0 +1,11 @@
+import GET_CATALOG from "@/src/app/qraphql/query/get-category-tree.graphql";
+import GET_PRODUCT_DETAIL from "@/src/app/qraphql/query/get-product-detail.graphql";
+import GET_PRODUCTS_BY_CATEGORY from "@/src/app/qraphql/query/get-products-by-category.graphql";
+import GET_CUSTOMER_CART from "@/src/app/qraphql/query/get-customer-cart.graphql";
+
+export const Queries = {
+  GET_CATALOG,
+  GET_PRODUCT_DETAIL,
+  GET_PRODUCTS_BY_CATEGORY,
+  GET_CUSTOMER_CART,
+};

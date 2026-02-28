@@ -22,7 +22,14 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  turbopack: {},
+  turbopack: {
+    rules: {
+      "*.graphql": {
+        loaders: ["graphql-tag/loader"],
+        as: "*.js",
+      },
+    },
+  },
   webpack(config) {
     config.module.rules.push({
       test: /\.(graphql|gql)$/,

@@ -1,0 +1,39 @@
+query GetCustomerCart($cartId: String!) {
+  cart(cart_id: $cartId) {
+    id
+    email
+    total_quantity
+    prices {
+      grand_total {
+        value
+        currency
+      }
+      subtotal_excluding_tax {
+        value
+        currency
+      }
+    }
+    items {
+      id
+      quantity
+      product {
+        id
+        name
+        sku
+        thumbnail {
+          url
+          label
+        }
+        price_range {
+          minimum_price {
+            final_price {
+              value
+              currency
+            }
+          }
+        }
+        url_key
+      }
+    }
+  }
+}
