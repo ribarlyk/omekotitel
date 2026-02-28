@@ -45,7 +45,7 @@ export async function fetchProductsByCategory(
   return gql<{ products: { items: unknown[]; total_count: number } }>(
     print(Queries.GET_PRODUCTS_BY_CATEGORY),
     { categoryId, pageSize, currentPage },
-    { cache: "no-store" }
+    { next: { revalidate: 86400 } }
   );
 }
 
@@ -53,6 +53,6 @@ export async function fetchProductDetail(urlKey: string) {
   return gql<{ products: { items: unknown[] } }>(
     print(Queries.GET_PRODUCT_DETAIL),
     { urlKey },
-    { cache: "no-store" }
+    { next: { revalidate: 86400 } }
   );
 }
