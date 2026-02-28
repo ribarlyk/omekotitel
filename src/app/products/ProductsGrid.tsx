@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { magentoImageUrl } from "@/src/app/utils/image";
 
 interface Product {
   id: string;
@@ -51,16 +52,19 @@ export function ProductsGrid({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {products.map((product) => (
+        {products.map((product, index) => (
           <div
             key={product.id}
             className="border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow"
           >
             <div className="aspect-square mb-4 bg-gray-100 rounded overflow-hidden relative">
               <Image
-                src={product.small_image.url}
+                src={magentoImageUrl(product.small_image.url)}
                 alt={product.small_image.label}
                 fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                loading={index < 3 ? "eager" : "lazy"}
+                fetchPriority={index < 3 ? "high" : "auto"}
               />
             </div>
 

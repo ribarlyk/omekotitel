@@ -10,6 +10,9 @@ export const Logo = () => {
           alt="Омекотител лого"
           width={190}
           height={90}
+          loading="eager"
+          fetchPriority="high"
+          unoptimized
         />
       </Link>
     </div>

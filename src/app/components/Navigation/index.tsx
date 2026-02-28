@@ -29,8 +29,8 @@ export const Navigation = ({ categoryList }: { categoryList: NavCatalogCategory[
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="relative">
-      <nav className="bg-brand-nav">
+    <div className="relative w-full">
+      <nav className="w-full bg-brand-nav">
         <ul className="flex flex-row items-center justify-center gap-8 px-6 py-3 text-lg">
           {NAVGATIOM_ITEMS.map((item) =>
             item.main ? (

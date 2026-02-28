@@ -70,7 +70,9 @@ export default function ProductDetail({ product }: ProductDetailProps) {
             width={600}
             height={600}
             className="w-full rounded-lg shadow-lg mb-4"
-            priority
+            sizes="(max-width: 768px) 100vw, 50vw"
+            loading="eager"
+            fetchPriority="high"
           />
           {product.media_gallery.length > 1 && (
             <div className="grid grid-cols-4 gap-2">
@@ -81,6 +83,7 @@ export default function ProductDetail({ product }: ProductDetailProps) {
                   alt={img.label || product.name}
                   width={100}
                   height={80}
+                  sizes="(max-width: 768px) 25vw, 12vw"
                   className="w-full h-20 object-cover rounded border hover:border-blue-500 cursor-pointer"
                 />
               ))}
