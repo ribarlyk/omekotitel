@@ -50,7 +50,7 @@ export default function ProductsList({
         {categoryName} ({totalCount} products)
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {products.map((product) => (
+        {products.map((product, index) => (
           <Link
             key={product.id}
             href={`/product/${product.url_key}`}
@@ -62,6 +62,9 @@ export default function ProductsList({
               className="w-full h-48 object-cover mb-3 rounded"
               width={200}
               height={250}
+              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
+              loading={index < 7 ? "eager" : "lazy"}
+              fetchPriority={index < 7 ? "high" : "auto"}
             />
             <h3 className="font-medium text-sm mb-2 line-clamp-2">
               {product.name}

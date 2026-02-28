@@ -52,7 +52,7 @@ export function ProductsGrid({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {products.map((product) => (
+        {products.map((product, index) => (
           <div
             key={product.id}
             className="border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow"
@@ -63,6 +63,8 @@ export function ProductsGrid({
                 alt={product.small_image.label}
                 fill
                 sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                loading={index < 3 ? "eager" : "lazy"}
+                fetchPriority={index < 3 ? "high" : "auto"}
               />
             </div>
 
