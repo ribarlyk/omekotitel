@@ -48,3 +48,11 @@ export async function fetchProductsByCategory(
     { cache: "no-store" }
   );
 }
+
+export async function fetchProductDetail(urlKey: string) {
+  return gql<{ products: { items: unknown[] } }>(
+    print(Queries.GET_PRODUCT_DETAIL),
+    { urlKey },
+    { cache: "no-store" }
+  );
+}
