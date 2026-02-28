@@ -13,6 +13,16 @@ const nextConfig: NextConfig = {
         pathname: "/pub/media/**",
       },
     ],
+    // Only generate WebP — avif doubles transformations with negligible visual gain
+    formats: ["image/webp"],
+    // 31 days: product images rarely change, so skip re-transforming on every request
+    minimumCacheTTL: 2678400,
+    // Only allow the quality value actually used in the codebase (default 75)
+    qualities: [75],
+    // Covers fill-based grids at 1/2/3-column breakpoints (md=768, lg=1024)
+    deviceSizes: [640, 1080, 1920],
+    // Covers all fixed-width images: thumbnails(100), logo(190), list cards(200), product detail(600)
+    imageSizes: [100, 200, 400, 600],
   },
   async rewrites() {
     return [

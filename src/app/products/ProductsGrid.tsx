@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { magentoImageUrl } from "@/src/app/utils/image";
 
 interface Product {
   id: string;
@@ -58,9 +59,10 @@ export function ProductsGrid({
           >
             <div className="aspect-square mb-4 bg-gray-100 rounded overflow-hidden relative">
               <Image
-                src={product.small_image.url}
+                src={magentoImageUrl(product.small_image.url)}
                 alt={product.small_image.label}
                 fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
               />
             </div>
 
