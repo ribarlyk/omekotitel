@@ -1,0 +1,32 @@
+query GetCategoryTree {
+  categoryList {
+    id
+    name
+    url_path
+    url_key
+    level
+    position
+    product_count
+    children_count
+    children {
+      id
+      name
+      url_path
+      url_key
+      level
+      position
+      product_count
+      children_count
+      children {
+        id
+        name
+        url_path
+        url_key
+        level
+        position
+        product_count
+        children_count
+      }
+    }
+  }
+}
