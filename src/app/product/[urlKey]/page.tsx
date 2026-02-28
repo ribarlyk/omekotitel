@@ -1,5 +1,8 @@
 import ProductDetail from "@/src/app/components/ProductDetail";
 import { Suspense } from "react";
+
+export const revalidate = 86400;
+export const dynamic = "force-static";
 import { fetchProductDetail } from "@/src/app/utils/graphql/fetchers";
 
 async function ProductData({ urlKey }: { urlKey: string }) {

@@ -1,5 +1,8 @@
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+
+export const revalidate = 86400;
+export const dynamic = "force-static";
 import ProductsList from "@/src/app/components/ProductsList";
 import { fetchCatalog, fetchProductsByCategory } from "@/src/app/utils/graphql/fetchers";
 
