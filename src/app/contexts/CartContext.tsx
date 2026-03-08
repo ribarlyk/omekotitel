@@ -103,8 +103,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         throw new Error(errorData.message || "Failed to remove item from cart");
       }
 
-      const data = await response.json();
-      setCart(data.cart);
+      await fetchCart();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to remove from cart");
       console.error("Error removing from cart:", err);

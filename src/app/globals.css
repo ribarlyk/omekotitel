@@ -20,7 +20,7 @@ section {
   display: block;
 }
 html {
-  scrollbar-gutter: stable;
+  overflow-x: clip;
 }
 body {
   line-height: 1;

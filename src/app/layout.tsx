@@ -2,10 +2,14 @@ import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
 import "./globals.css";
 import { ApolloWrapper } from "./ApolloWrapper";
+import { AuthProvider } from "./contexts/AuthContext";
+import { CartProvider } from "./contexts/CartContext";
+import { WishlistProvider } from "./contexts/WishlistContext";
 import { Header } from "./components/Header";
 import { Navigation } from "./components/Navigation";
 import type { NavCatalogCategory } from "./constants";
 import { fetchCatalog } from "./utils/graphql/fetchers";
+import { Toaster } from "sonner";
 
 const roboto = Roboto({
   variable: "--font-roboto",
@@ -33,9 +37,16 @@ export default async function RootLayout({
         suppressHydrationWarning={true}
       >
         <ApolloWrapper>
-          <Header />
-          <Navigation categoryList={categoryList} />
-          {children}
+          <AuthProvider>
+            <CartProvider>
+              <WishlistProvider>
+                <Toaster position="top-center" richColors />
+                <Header />
+                <Navigation categoryList={categoryList} />
+                {children}
+              </WishlistProvider>
+            </CartProvider>
+          </AuthProvider>
         </ApolloWrapper>
       </body>
     </html>
