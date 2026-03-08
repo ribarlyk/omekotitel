@@ -80,6 +80,15 @@ export async function POST(request: NextRequest) {
       if (cartResp.ok) {
         const cartData = await cartResp.json();
         cartId = cartData?.data?.cartId ?? null;
+        if (cartId) {
+          cookieStore.set("cart-id", cartId, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 60 * 60 * 24 * 7,
+            path: "/",
+          });
+        }
       } else {
         console.warn("Cart creation HTTP error", cartResp.status);
       }

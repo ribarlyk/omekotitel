@@ -1,38 +1,129 @@
-import { User } from "lucide-react";
-import { Heart } from "lucide-react";
-import { ShoppingCart } from "lucide-react";
-import { Phone } from "lucide-react";
+"use client";
+
+import { User, Heart, ShoppingCart, Phone } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { SidePanel } from "@/src/app/components/SidePanel";
+import { CartPanel } from "./CartPanel";
+import { LoginPanel } from "./LoginPanel";
+import { WishlistPanel } from "./WishlistPanel";
+import { ProfileDropdown } from "./ProfileDropdown";
+import { useCart } from "@/src/app/contexts/CartContext";
+import { useWishlist } from "@/src/app/contexts/WishlistContext";
+import { useAuth } from "@/src/app/contexts/AuthContext";
+
+enum Panel {
+  Cart = "cart",
+  Profile = "profile",
+  Wishlist = "wishlist",
+}
+
+const PANEL_TITLES: Record<Panel, string> = {
+  [Panel.Profile]: "Профил",
+  [Panel.Cart]: "Количка",
+  [Panel.Wishlist]: "Любими",
+};
 
 export const UserCartWishSection = () => {
+  const [openPanel, setOpenPanel] = useState<Panel | null>(null);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const profileRef = useRef<HTMLDivElement>(null);
+  const { itemCount, refreshCart } = useCart();
+  const { itemCount: wishlistCount, refreshWishlist } = useWishlist();
+  const { isLoggedIn } = useAuth();
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+        setProfileMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const toggle = (panel: Panel) =>
+    setOpenPanel((prev) => (prev === panel ? null : panel));
+
+  const handleProfileClick = () => {
+    if (isLoggedIn) {
+      setProfileMenuOpen((prev) => !prev);
+    } else {
+      toggle(Panel.Profile);
+    }
+  };
+
   return (
-    <div className="flex items-center gap-6">
-      <div className="hidden xl:flex items-center gap-3">
-        <div className="border border-gray-300 rounded-xl p-3">
-          <Phone className="text-brand-action" strokeWidth={2} size={30} />
+    <>
+      <div className="flex items-center gap-6">
+        <div className="hidden xl:flex items-center gap-3">
+          <div className="border border-gray-300 rounded-xl p-3">
+            <Phone className="text-brand-action" strokeWidth={2} size={30} />
+          </div>
+          <address className="flex flex-col not-italic gap-1">
+            <p className="text-[12px]! text-brand-nav">За поръчки и запитвания</p>
+            <a href="tel:08888787852" className="text-[25px]! font-bold text-brand-nav">
+              0888787852
+            </a>
+          </address>
         </div>
-        <address className="flex flex-col not-italic gap-1">
-          <p className="text-[12px]! text-brand-nav">За поръчки и запитвания</p>
-          <a
-            href="tel:08888787852"
-            className="text-[25px]! font-bold text-brand-nav"
+
+        <div ref={profileRef} className="relative">
+          <button
+            onClick={handleProfileClick}
+            className="flex flex-col items-center cursor-pointer"
           >
-            0888787852
-          </a>
-        </address>
+            <User className="text-brand-action" strokeWidth={2} size={24} />
+            <span className="text-xs text-brand-action">Профил</span>
+          </button>
+          {isLoggedIn && profileMenuOpen && (
+            <ProfileDropdown
+              onClose={() => setProfileMenuOpen(false)}
+            />
+          )}
+        </div>
+
+        <button
+          onClick={() => toggle(Panel.Wishlist)}
+          className="flex flex-col items-center cursor-pointer"
+        >
+          <div className="relative">
+            <Heart className="text-brand-action" strokeWidth={2} size={24} />
+            {wishlistCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-brand-action text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
+                {wishlistCount}
+              </span>
+            )}
+          </div>
+          <span className="text-xs text-brand-action">Любими</span>
+        </button>
+
+        <button
+          onClick={() => toggle(Panel.Cart)}
+          className="flex flex-col items-center cursor-pointer"
+        >
+          <div className="relative">
+            <ShoppingCart className="text-brand-action" strokeWidth={2} size={24} />
+            {itemCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-brand-action text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
+                {itemCount}
+              </span>
+            )}
+          </div>
+          <span className="text-xs text-brand-action">Количка</span>
+        </button>
       </div>
-      <div className="flex flex-col items-center">
-        <User className="text-brand-action" strokeWidth={2} size={24} />
-        <span className="text-xs text-brand-action">Профил</span>
-      </div>
-      <div className="flex flex-col items-center">
-        <Heart className="text-brand-action" strokeWidth={2} size={24} />
-        <span className="text-xs text-brand-action">Любими
-        </span>
-      </div>
-      <div className="flex flex-col items-center">
-        <ShoppingCart className="text-brand-action" strokeWidth={2} size={24} />
-        <span className="text-xs text-brand-action">Количка</span>
-      </div>
-    </div>
+
+      <SidePanel
+        isOpen={openPanel !== null}
+        onClose={() => setOpenPanel(null)}
+        title={openPanel ? PANEL_TITLES[openPanel] : ""}
+      >
+        {openPanel === Panel.Cart && <CartPanel />}
+        {openPanel === Panel.Profile && (
+          <LoginPanel onSuccess={() => { setOpenPanel(null); refreshCart(); refreshWishlist(); }} />
+        )}
+        {openPanel === Panel.Wishlist && <WishlistPanel />}
+      </SidePanel>
+    </>
   );
 };

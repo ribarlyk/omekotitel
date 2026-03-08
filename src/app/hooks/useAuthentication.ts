@@ -1,15 +1,24 @@
 "use client";
 import { FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { useAuth } from "@/src/app/contexts/AuthContext";
+import { useCart } from "@/src/app/contexts/CartContext";
+import { useWishlist } from "@/src/app/contexts/WishlistContext";
 
 export interface UseAuthenticateReturns {
   loginLoading: boolean;
-  handleLogin: (event: FormEvent<HTMLFormElement>) => Promise<void>;
+  handleLogin: (event: FormEvent<HTMLFormElement>) => Promise<boolean>;
   handleRegister: (event: FormEvent<HTMLFormElement>) => Promise<void>;
   handleLogout: () => Promise<void>;
 }
 
 export const useAuthenticate = (): UseAuthenticateReturns => {
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const { logout, setUser } = useAuth();
+  const { refreshCart } = useCart();
+  const { refreshWishlist } = useWishlist();
 
   const handleLogout = async () => {
     try {
@@ -21,6 +30,12 @@ export const useAuthenticate = (): UseAuthenticateReturns => {
         },
         credentials: "include",
       });
+      // Update auth state immediately
+      logout();
+      refreshCart();
+      refreshWishlist();
+      toast.success("Излязохте успешно.");
+      router.push("/");
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
@@ -28,7 +43,7 @@ export const useAuthenticate = (): UseAuthenticateReturns => {
     }
   };
 
-  const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
+  const handleLogin = async (event: FormEvent<HTMLFormElement>): Promise<boolean> => {
     try {
       event.preventDefault();
       setLoading(true);
@@ -37,16 +52,30 @@ export const useAuthenticate = (): UseAuthenticateReturns => {
       const email = String(formData.get("email") ?? "").trim();
       const password = String(formData.get("password") ?? "").trim();
 
-      await fetch("/api/auth/login", {
+      const response = await fetch("/api/auth/login", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({ email, password }),
       });
+
+      if (response.ok) {
+        // Fetch user data and update auth state
+        const meResponse = await fetch("/api/me", {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+        });
+        if (meResponse.ok) {
+          const userData = await meResponse.json();
+          setUser(userData);
+        }
+        return true;
+      }
+      return false;
     } catch (error) {
       console.error("Login error:", error);
+      return false;
     } finally {
       setLoading(false);
     }

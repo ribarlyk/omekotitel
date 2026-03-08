@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { Cart } from "../types/cart";
+import { useAuth } from "./AuthContext";
 
 interface CartContextType {
   cartId: string | null;
@@ -18,17 +19,26 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: ReactNode }) {
+  const { isLoggedIn, loading: authLoading } = useAuth();
   const [cartId, setCartId] = useState<string | null>(null);
   const [cart, setCart] = useState<Cart | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch or create cart on mount
+  // Fetch or create cart only when user is authenticated
   useEffect(() => {
-    fetchCart();
-  }, []);
+    if (!authLoading && isLoggedIn) {
+      fetchCart();
+    } else if (!authLoading && !isLoggedIn) {
+      setCartId(null);
+      setCart(null);
+      setLoading(false);
+    }
+  }, [authLoading, isLoggedIn]);
 
   const fetchCart = async () => {
+    if (!isLoggedIn) return;
+    
     try {
       setLoading(true);
       setError(null);
@@ -54,6 +64,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const addToCart = async (sku: string, quantity: number) => {
+    if (!isLoggedIn) return;
+    
     try {
       setLoading(true);
       setError(null);
@@ -85,6 +97,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const removeFromCart = async (cartItemId: string) => {
+    if (!isLoggedIn) return;
+    
     try {
       setLoading(true);
       setError(null);
@@ -103,8 +117,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         throw new Error(errorData.message || "Failed to remove item from cart");
       }
 
-      const data = await response.json();
-      setCart(data.cart);
+      await fetchCart();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to remove from cart");
       console.error("Error removing from cart:", err);
@@ -115,6 +128,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const updateQuantity = async (cartItemId: string, quantity: number) => {
+    if (!isLoggedIn) return;
+    
     try {
       setLoading(true);
       setError(null);
