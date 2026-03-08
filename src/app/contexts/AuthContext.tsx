@@ -38,8 +38,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       .finally(() => setLoading(false));
   }, []);
 
-  const logout = () => {
-    setUser(null);
+  const logout = async () => {
+    setUser(null); // Clear user state immediately
+    try {
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (err) {
+      console.error("Logout error:", err);
+    }
   };
 
   return (

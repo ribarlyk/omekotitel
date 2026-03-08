@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { Wishlist } from "../types/wishlist";
+import { useAuth } from "./AuthContext";
 
 interface WishlistContextType {
   wishlist: Wishlist | null;
@@ -16,10 +17,13 @@ interface WishlistContextType {
 const WishlistContext = createContext<WishlistContextType | undefined>(undefined);
 
 export function WishlistProvider({ children }: { children: ReactNode }) {
+  const { isLoggedIn, loading: authLoading } = useAuth();
   const [wishlist, setWishlist] = useState<Wishlist | null>(null);
   const [loading, setLoading] = useState(false);
 
   const fetchWishlist = useCallback(async () => {
+    if (!isLoggedIn) return;
+    
     try {
       setLoading(true);
       const resp = await fetch("/api/wishlist", { credentials: "include" });
@@ -35,11 +39,15 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isLoggedIn]);
 
   useEffect(() => {
-    fetchWishlist();
-  }, [fetchWishlist]);
+    if (!authLoading && isLoggedIn) {
+      fetchWishlist();
+    } else if (!authLoading && !isLoggedIn) {
+      setWishlist(null);
+    }
+  }, [authLoading, isLoggedIn]);
 
   const isInWishlist = (sku: string): boolean => {
     if (!wishlist) return false;
@@ -47,6 +55,8 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   };
 
   const addToWishlist = async (sku: string) => {
+    if (!isLoggedIn) return;
+    
     try {
       setLoading(true);
       const resp = await fetch("/api/wishlist/add", {
@@ -73,6 +83,8 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   };
 
   const removeFromWishlist = async (wishlistItemId: string) => {
+    if (!isLoggedIn) return;
+    
     try {
       setLoading(true);
       const resp = await fetch("/api/wishlist/remove", {
