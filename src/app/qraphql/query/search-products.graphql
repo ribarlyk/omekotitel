@@ -1,0 +1,23 @@
+query SearchProducts($search: String!, $pageSize: Int) {
+  products(search: $search, pageSize: $pageSize) {
+    items {
+      id
+      name
+      sku
+      price_range {
+        minimum_price {
+          final_price {
+            value
+            currency
+          }
+        }
+      }
+      small_image {
+        url
+        label
+      }
+      url_key
+    }
+    total_count
+  }
+}

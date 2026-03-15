@@ -1,45 +1,46 @@
 "use client";
 
 import { Search } from "lucide-react";
-import { useState } from "react";
-
-type SearchTerm = string;
+import { useRouter } from "next/navigation";
+import { useRef, useState } from "react";
+import debounce from "lodash/debounce";
 
 export const SearchBar = () => {
-  const [searchTerm, setSearchTerm] = useState<SearchTerm>("");
+  const [value, setValue] = useState("");
+  const router = useRouter();
 
-  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
+  const debouncedNavigate = useRef(
+    debounce((q: string) => {
+      if (q.trim()) router.push(`/search?q=${encodeURIComponent(q.trim())}`);
+    }, 300)
+  ).current;
+
+  const handleSubmit = (e: { preventDefault: () => void }) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const query = formData.get("search")?.toString().trim();
-
-    console.log("Търсене на:", query);
-    setSearchTerm("");
-
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
+    debouncedNavigate.cancel();
+    if (value.trim()) {
+      router.push(`/search?q=${encodeURIComponent(value.trim())}`);
+      setValue("");
+    }
   };
 
   return (
     <form
       className="flex items-center w-full h-14 border border-gray-300 rounded-lg px-4 gap-2"
-      onSubmit={handleSearch}
+      onSubmit={handleSubmit}
     >
       <input
         type="text"
-        name="search"
         placeholder="Търсене на продукти..."
         className="flex-1 outline-none bg-transparent"
-        value={searchTerm}
-        onChange={handleChange}
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
         autoComplete="off"
       />
       <button
         type="submit"
         aria-label="Търси"
-        className="p-2 rounded-lg hover:bg-brand-nav transition-colors duration-200 group"
+        className="p-2 rounded-lg hover:bg-brand-nav transition-colors duration-200 group cursor-pointer"
       >
         <Search
           className="text-brand-action group-hover:text-white"

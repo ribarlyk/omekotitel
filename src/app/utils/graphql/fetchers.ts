@@ -56,3 +56,11 @@ export async function fetchProductDetail(urlKey: string) {
     { next: { revalidate: 86400 } }
   );
 }
+
+export async function fetchSearchProducts(search: string, pageSize = 20) {
+  return gql<{ products: { items: unknown[]; total_count: number } }>(
+    print(Queries.SEARCH_PRODUCTS),
+    { search, pageSize },
+    { cache: "no-store" }
+  );
+}
