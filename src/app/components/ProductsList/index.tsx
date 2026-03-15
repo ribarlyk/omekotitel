@@ -25,7 +25,7 @@ interface Product {
 interface ProductsListProps {
   products: Product[];
   totalCount: number;
-  categoryName: string;
+  categoryName?: string;
 }
 
 
@@ -46,9 +46,11 @@ export default function ProductsList({
 
   return (
     <div className="mt-6">
-      <h2 className="text-xl font-semibold mb-4">
-        {categoryName} ({totalCount} products)
-      </h2>
+      {categoryName && (
+        <h2 className="text-xl font-semibold mb-4">
+          {categoryName} ({totalCount} products)
+        </h2>
+      )}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {products.map((product, index) => (
           <Link

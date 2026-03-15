@@ -4,6 +4,7 @@ import GET_PRODUCTS_BY_CATEGORY from "@/src/app/qraphql/query/get-products-by-ca
 import GET_CUSTOMER_CART from "@/src/app/qraphql/query/get-customer-cart.graphql";
 import GET_CUSTOMER from "@/src/app/qraphql/query/get-customer.graphql";
 import GET_CUSTOMER_WISHLIST from "@/src/app/qraphql/query/get-customer-wishlist.graphql";
+import SEARCH_PRODUCTS from "@/src/app/qraphql/query/search-products.graphql";
 
 export const Queries = {
   GET_CATALOG,
@@ -12,4 +13,5 @@ export const Queries = {
   GET_CUSTOMER_CART,
   GET_CUSTOMER,
   GET_CUSTOMER_WISHLIST,
+  SEARCH_PRODUCTS,
 };

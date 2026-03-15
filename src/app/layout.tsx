@@ -7,6 +7,7 @@ import { CartProvider } from "./contexts/CartContext";
 import { WishlistProvider } from "./contexts/WishlistContext";
 import { Header } from "./components/Header";
 import { Navigation } from "./components/Navigation";
+import { DeliveryBanner } from "./components/DeliveryBanner";
 import type { NavCatalogCategory } from "./constants";
 import { fetchCatalog } from "./utils/graphql/fetchers";
 import { Toaster } from "sonner";
@@ -41,8 +42,11 @@ export default async function RootLayout({
             <CartProvider>
               <WishlistProvider>
                 <Toaster position="top-center" richColors />
-                <Header />
-                <Navigation categoryList={categoryList} />
+                <DeliveryBanner />
+                <div className="sticky top-0 z-30 shadow-md">
+                  <Header />
+                  <Navigation categoryList={categoryList} />
+                </div>
                 {children}
               </WishlistProvider>
             </CartProvider>
