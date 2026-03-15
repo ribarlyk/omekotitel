@@ -2,6 +2,7 @@
 
 @theme {
   --color-brand-action: #98ab3f;
+  --color-brand-action-light: #b8cc52;
   --color-brand-nav: #485f27;
   --font-sans: var(--font-roboto), sans-serif;
 }

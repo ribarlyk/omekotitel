@@ -98,9 +98,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const removeFromCart = async (cartItemId: string) => {
     if (!isLoggedIn) return;
-    
+
     try {
-      setLoading(true);
       setError(null);
 
       const response = await fetch("/api/cart/remove", {
@@ -117,21 +116,27 @@ export function CartProvider({ children }: { children: ReactNode }) {
         throw new Error(errorData.message || "Failed to remove item from cart");
       }
 
-      await fetchCart();
+      const { cart: updated } = await response.json();
+      setCart((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          total_quantity: updated.total_quantity,
+          prices: updated.prices,
+          items: prev.items.filter((item) => item.id !== cartItemId),
+        };
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to remove from cart");
       console.error("Error removing from cart:", err);
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
   const updateQuantity = async (cartItemId: string, quantity: number) => {
     if (!isLoggedIn) return;
-    
+
     try {
-      setLoading(true);
       setError(null);
 
       const response = await fetch("/api/cart/update", {
@@ -148,14 +153,23 @@ export function CartProvider({ children }: { children: ReactNode }) {
         throw new Error(errorData.message || "Failed to update cart item");
       }
 
-      const data = await response.json();
-      setCart(data.cart);
+      const { cart: updated } = await response.json();
+      setCart((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          total_quantity: updated.total_quantity,
+          prices: updated.prices,
+          items: prev.items.map((item) => {
+            const updatedItem = updated.items.find((u: { id: string }) => u.id === item.id);
+            return updatedItem ? { ...item, quantity: updatedItem.quantity } : item;
+          }),
+        };
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to update quantity");
       console.error("Error updating quantity:", err);
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
