@@ -89,7 +89,7 @@ export const UserCartWishSection = () => {
           <div className="relative">
             <Heart className="text-brand-action" strokeWidth={2} size={24} />
             {wishlistCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-brand-action text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
+              <span className="absolute -top-2 -right-2 bg-brand-action text-white text-[11px] w-5 h-5 rounded-full flex items-center justify-center font-bold">
                 {wishlistCount}
               </span>
             )}
@@ -104,7 +104,7 @@ export const UserCartWishSection = () => {
           <div className="relative">
             <ShoppingCart className="text-brand-action" strokeWidth={2} size={24} />
             {itemCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-brand-action text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
+              <span className="absolute -top-2 -right-2 bg-brand-action text-white text-[11px] w-5 h-5 rounded-full flex items-center justify-center font-bold">
                 {itemCount}
               </span>
             )}
@@ -117,6 +117,8 @@ export const UserCartWishSection = () => {
         isOpen={openPanel !== null}
         onClose={() => setOpenPanel(null)}
         title={openPanel ? PANEL_TITLES[openPanel] : ""}
+        width={openPanel === Panel.Cart ? "w-[480px]" : "w-96"}
+        customLayout={openPanel === Panel.Cart}
       >
         {openPanel === Panel.Cart && <CartPanel />}
         {openPanel === Panel.Profile && (

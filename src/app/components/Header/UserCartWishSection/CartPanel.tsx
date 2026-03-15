@@ -2,26 +2,132 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { Loader2, Trash2, Plus, Minus } from "lucide-react";
+import { useOptimistic, useState, useTransition, useEffect, useRef } from "react";
+import debounce from "lodash/debounce";
+import { toast } from "sonner";
 import { useCart } from "@/src/app/contexts/CartContext";
 import { magentoImageUrl } from "@/src/app/utils/image";
+import { CartPanelLayout } from "@/src/app/components/CartPanelLayout";
+
+interface QuantityInputProps {
+  id: string;
+  quantity: number;
+  isUpdating: boolean;
+  onUpdate: (id: string, qty: number) => void;
+}
+
+const QuantityInput = ({ id, quantity, isUpdating, onUpdate }: QuantityInputProps) => {
+  const [value, setValue] = useState(String(quantity));
+
+  useEffect(() => {
+    setValue(String(quantity));
+  }, [quantity]);
+
+  const debouncedUpdate = useRef(
+    debounce((itemId: string, qty: number) => onUpdate(itemId, qty), 600)
+  ).current;
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value;
+    setValue(raw);
+    const num = parseInt(raw);
+    if (!isNaN(num) && num >= 1) {
+      if (num > 99) {
+        toast.warning("За количества над 99 бр. моля обадете се на 0888787852 за наличност.");
+        return;
+      }
+      debouncedUpdate(id, num);
+    }
+  };
+
+  const handleBlur = () => {
+    debouncedUpdate.flush();
+    const num = parseInt(value);
+    if (isNaN(num) || num < 1) setValue(String(quantity));
+  };
+
+  if (isUpdating) return <Loader2 size={13} className="animate-spin text-brand-action" />;
+
+  return (
+    <input
+      type="number"
+      min={1}
+      value={value}
+      onChange={handleChange}
+      onBlur={handleBlur}
+      className="w-7 text-center text-sm text-brand-nav font-medium leading-none bg-transparent outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+    />
+  );
+};
 
 export const CartPanel = () => {
-  const { cart, itemCount, loading, removeFromCart } = useCart();
+  const { cart, itemCount, loading, removeFromCart, updateQuantity } = useCart();
+  const [optimisticItems, updateOptimisticItems] = useOptimistic(
+    cart?.items ?? [],
+    (state, { id, quantity }: { id: string; quantity: number }) =>
+      state.map((item) => (item.id === id ? { ...item, quantity } : item))
+  );
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [removingId, setRemovingId] = useState<string | null>(null);
+  const [, startTransition] = useTransition();
 
-  if (loading) return <p className="text-gray-500 text-sm">Зареждане...</p>;
+  const handleRemove = async (id: string) => {
+    setRemovingId(id);
+    try {
+      await removeFromCart(id);
+      toast.success("Продуктът е премахнат от количката ви");
+    } catch {
+      toast.error("Грешка при премахване");
+    } finally {
+      setRemovingId(null);
+    }
+  };
+
+  const handleUpdateQuantity = (id: string, qty: number) => {
+    setUpdatingId(id);
+    startTransition(async () => {
+      updateOptimisticItems({ id, quantity: qty });
+      try {
+        await updateQuantity(id, qty);
+        toast.success("Количката е обновена");
+      } catch {
+        toast.error("Грешка при обновяване");
+      } finally {
+        setUpdatingId(null);
+      }
+    });
+  };
+
+  if (loading) return <p className="p-6 text-gray-500 text-sm">Зареждане...</p>;
 
   if (!cart || itemCount === 0)
-    return <p className="text-gray-500 text-sm">Количката ви е празна.</p>;
+    return <p className="p-6 text-gray-500 text-sm">Количката ви е празна.</p>;
 
   const total = cart.prices.grand_total;
 
   return (
-    <div className="flex flex-col h-full gap-6">
+    <CartPanelLayout
+      footer={
+        <>
+          <div className="flex justify-between text-base font-bold text-brand-nav mb-4">
+            <span>Общо</span>
+            <span>{total.value.toFixed(2)} {total.currency}</span>
+          </div>
+          <a
+            href="/checkout"
+            className="block w-full bg-brand-action text-white text-center py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity"
+          >
+            Към плащане
+          </a>
+        </>
+      }
+    >
       <ul className="flex flex-col gap-4">
-        {cart.items.filter((item) => item.product).map((item) => {
+        {optimisticItems.filter((item) => item.product).map((item) => {
           const price = item.product.price_range.minimum_price.final_price;
           return (
-            <li key={item.id} className="flex gap-3">
+            <li key={item.id} className="flex gap-3 rounded-xl hover:bg-gray-50 transition-colors -mx-2 px-2 py-1">
               <Link href={`/product/${item.product.url_key}`} className="relative w-16 h-16 shrink-0 rounded-lg overflow-hidden border border-gray-100">
                 <Image
                   src={magentoImageUrl(item.product.thumbnail.url)}
@@ -31,38 +137,50 @@ export const CartPanel = () => {
                 />
               </Link>
               <div className="flex-1 min-w-0">
-                <Link href={`/product/${item.product.url_key}`} className="text-sm font-medium text-brand-nav line-clamp-2 hover:underline">
+                <Link href={`/product/${item.product.url_key}`} className="text-sm font-medium text-brand-nav line-clamp-2 hover:text-brand-action transition-colors">
                   {item.product.name}
                 </Link>
-                <p className="text-xs text-gray-500 mt-1">
-                  {item.quantity} бр. &times; {price.value.toFixed(2)} {price.currency}
-                </p>
+                <div className="flex items-center gap-3 mt-1">
+                  <div className="flex items-center rounded-full overflow-hidden select-none border border-brand-action-light">
+                    <div
+                      onClick={() => item.quantity > 1 && updatingId !== item.id && handleUpdateQuantity(item.id, item.quantity - 1)}
+                      className={`w-8 h-8 flex items-center justify-center bg-brand-action-light text-white hover:bg-brand-action transition-colors cursor-pointer ${item.quantity <= 1 || updatingId === item.id ? "opacity-30 pointer-events-none" : ""}`}
+                    >
+                      <Minus size={14} />
+                    </div>
+                    <span className="w-7 h-8 flex items-center justify-center">
+                      <QuantityInput
+                        id={item.id}
+                        quantity={item.quantity}
+                        isUpdating={updatingId === item.id}
+                        onUpdate={handleUpdateQuantity}
+                      />
+                    </span>
+                    <div
+                      onClick={() => updatingId !== item.id && handleUpdateQuantity(item.id, item.quantity + 1)}
+                      className={`w-8 h-8 flex items-center justify-center bg-brand-action-light text-white hover:bg-brand-action transition-colors cursor-pointer ${updatingId === item.id ? "opacity-30 pointer-events-none" : ""}`}
+                    >
+                      <Plus size={14} />
+                    </div>
+                  </div>
+                  <span className="text-sm text-gray-700">{price.value.toFixed(2)} {price.currency}</span>
+                </div>
               </div>
               <button
-                onClick={() => removeFromCart(item.id)}
-                className="text-gray-300 hover:text-red-400 text-lg leading-none cursor-pointer shrink-0"
+                onClick={() => handleRemove(item.id)}
+                disabled={removingId === item.id}
+                className="text-gray-300 hover:text-red-400 cursor-pointer shrink-0 disabled:cursor-not-allowed"
                 aria-label="Премахни"
               >
-                &times;
+                {removingId === item.id
+                  ? <Loader2 size={16} className="animate-spin text-brand-action" />
+                  : <Trash2 size={16} />
+                }
               </button>
             </li>
           );
         })}
       </ul>
-      <div className="border-t border-gray-200 pt-4 mt-auto">
-        <div className="flex justify-between text-sm font-semibold text-brand-nav mb-4">
-          <span>Общо</span>
-          <span>
-            {total.value.toFixed(2)} {total.currency}
-          </span>
-        </div>
-        <a
-          href="/checkout"
-          className="block w-full bg-brand-action text-white text-center py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity"
-        >
-          Към плащане
-        </a>
-      </div>
-    </div>
+    </CartPanelLayout>
   );
 };
